@@ -20,13 +20,34 @@
  * Constructor sets an empty board (default 3 rows, 4 columns) and 
  * specifies it is X's turn first
 **/
-Piezas::Piezas();
+Piezas::Piezas()
+{
+//tacos
+	board.resize(3);
+	for (unsigned int i = 0; i < board.size(); i++)
+	board[i].resize(4);
+
+	for (unsigned int row = 0; row < board.size(); row++)
+	{
+		for (unsigned int col = 0; col < 4; col++)
+		board[row][col] = Blank;
+	}
+
+	turn = X;
+}
 
 /**
  * Resets each board location to the Blank Piece value, with a board of the
  * same size as previously specified
 **/
-void Piezas::reset();
+void Piezas::reset()
+{
+	for (unsigned int row = 0; row < board.size(); row++)
+	{
+		for (unsigned int col = 0; col < board[0].size(); col++)
+		board[row][col] = Blank;
+	}
+}
 
 /**
  * Places a piece of the current turn on the board, returns what
@@ -36,13 +57,42 @@ void Piezas::reset();
  * Out of bounds coordinates return the Piece Invalid value
  * Trying to drop a piece where it cannot be placed loses the player's turn
 **/ 
-Piece Piezas::dropPiece(int column);
+Piece Piezas::dropPiece(int column)
+{
+	if ( column < 0 || column > 3)
+	{	
+		if(turn == X) 
+		turn = O;
+		else turn = X;
+		return Invalid;
+	}
+
+	for (int row = 0; row < 3; row++)
+	{
+		if (board[row][column] == Blank)
+		{
+			board[row][column] = turn;
+			if (turn == X)
+			turn = O;
+			else turn = X;
+			return board[row][column];
+		}
+	}
+
+	return Blank;				
+}
 
 /**
  * Returns what piece is at the provided coordinates, or Blank if there
  * are no pieces there, or Invalid if the coordinates are out of bounds
 **/
-Piece Piezas::pieceAt(int row, int column);
+Piece Piezas::pieceAt(int row, int column)
+{
+	if ((row < 0 || row > 2) || (column < 0 || column > 3))
+	return Invalid;
+
+	return board[row][column];
+}
 
 /**
  * Returns which Piece has won, if there is a winner, Invalid if the game
@@ -53,4 +103,115 @@ Piece Piezas::pieceAt(int row, int column);
  * or horizontally. If both X's and O's have the same max number of pieces in a
  * line, it is a tie.
 **/
-Piece Piezas::gameState();
+Piece Piezas::gameState()
+{
+	int xMax = 0;
+	int oMax = 0;
+	int xValue = 0;
+	int oValue = 0;
+	Piece prev = Blank;
+	for (unsigned int row = 0; row < 3; row++)
+	{
+		for (unsigned int col = 0; col < 4; col++)
+		{
+			if (board[row][col] == Blank)
+			return Invalid;
+		}
+	}
+
+	for (unsigned int row = 0; row < 3; row++)
+	{
+		for (unsigned int col = 0; col < 4; col++)
+		{	
+			if (col == 0) 
+			prev = board[row][col];
+
+			if (board[row][col] == X && prev == X)
+			{
+				prev = board[row][col]; 
+				xValue++;
+			}
+			else if (board[row][col] == X)
+			{
+				prev = board[row][col];
+				if (xValue < 2)
+				xValue = 1;
+			}
+			
+			if (board[row][col] == O && prev == O)
+			{
+				prev = board[row][col];
+				oValue++;
+			}
+			else if (board[row][col] == O)
+			{
+				prev = board[row][col];
+				if (oValue < 2) 		
+				oValue = 1;
+			}
+		}
+		if (xValue > xMax)
+		xMax = xValue;
+		if (oValue > oMax)
+		oMax = oValue;
+		
+		xValue = 0;
+		oValue = 0;
+	}
+
+	for (unsigned int col = 0; col < 4; col++)
+	{
+		for (unsigned int row = 0; row < 3; row++)
+		{	
+			if (row == 0) 
+			prev = board[row][col];
+
+			if (board[row][col] == X && prev == X)
+			{
+				prev = board[row][col]; 
+				xValue++;
+			}
+			else if (board[row][col] == X)
+			{
+				prev = board[row][col];
+				if (xValue < 2)
+				xValue = 1;
+			}
+			
+			if (board[row][col] == O && prev == O)
+			{
+				prev = board[row][col];
+				oValue++;
+			}
+			else if (board[row][col] == O)
+			{
+				prev = board[row][col];
+				if (oValue < 2) 		
+				oValue = 1;
+			}
+		}
+		if (xValue > xMax)
+		xMax = xValue;
+		if (oValue > oMax)
+		oMax = oValue;
+		
+		xValue = 0;
+		oValue = 0;
+	}
+	
+	if (xMax > oMax)
+	{
+		prev = X;
+		return prev;
+	}
+	else if (oMax > xMax)
+	{
+		prev = O;
+		return prev;
+	}
+
+	prev = Blank;
+	return prev;
+}
+
+
